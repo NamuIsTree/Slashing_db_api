@@ -25,16 +25,16 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
 mongoose
-	.connect(MongoURI, {
-		useNewUrlParser: true,
-		useCreateIndex: true,
-	})
-	.then(() => {
-		console.log("Connected to MongoDB");
-	})
-	.catch((err) => {
-		console.log(err);
-	});
+.connect(MongoURI, {
+	useNewUrlParser: true,
+	useCreateIndex: true,
+})
+.then(() => {
+	console.log("Connected to MongoDB");
+})
+.catch((err) => {
+	console.log(err);
+});
 
 app.post('/getYoutubeTitle', function(req, res) {
 	const yt_link = req.body.yt_link;
@@ -65,6 +65,30 @@ app.post('/save', function(req, res) {
 		res.json({result: 1});
 	});
 });
+
+app.post('/find', function(req, res){
+	var title = req.body.search_key;
+
+	LyricModel.find({youtubeTitle: {$regex: title, $options: "i"}}, {_id: 1, youtubeLink: 1, youtubeTitle: 1}, function(err, lyric){
+		if(err) return res.status(500).json({error: err});
+		res.json(lyric);
+	});
+
+	console.log('Successfully Found.');
+});
+
+app.post('/find/lyric', function(req, res){
+	
+
+	LyricModel.find({"_id": req.body._id}, function(err, lyric){
+		if(err) return res.status(500).json({error: err});
+		res.json(lyric);
+	});
+
+	console.log('Successfully Found lyric.');
+});
+
+
 
 app.listen(port, () => console.log('API running ...'));
 
