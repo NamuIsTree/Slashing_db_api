@@ -46,9 +46,9 @@ app.post('/getYoutubeTitle', function(req, res) {
 });
 
 app.post('/save', function(req, res) {
-	let now = new Date();
-
-	now.add({hours: 9});
+	var now = new Date().getTime();
+	now += 9 * 60 * 60 * 1000;
+	now = new Date(now);
 
 	let year = now.getFullYear();
 	let month = now.getMonth() + 1;
@@ -67,8 +67,10 @@ app.post('/save', function(req, res) {
 	let minutes = now.getMinutes();
 	let seconds = now.getSeconds();
 	
-	const nowDate = year + '-' + month + '-' + date + ' (' + day + ')' + ' ' + 
+	const nowDate = year + '년 ' + month + '월 ' + date + '일 (' + day + ')' + ' ' + 
 			hours + '시 ' + minutes + '분 ' + seconds + '초';
+
+	console.log('date : ' + nowDate);
 
 	const data = new LyricModel({
 		youtubeLink: req.body.yt_link,
