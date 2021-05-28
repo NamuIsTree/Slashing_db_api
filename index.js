@@ -67,9 +67,16 @@ app.post('/save', function(req, res) {
 });
 
 app.post('/find', function(req, res){
-	var title = req.body.search_key;
+	var title = req.body.search_key.split(' ');
+	var regexquery = ".*";
 
-	LyricModel.find({youtubeTitle: {$regex: title, $options: "i"}}, {_id: 1, youtubeLink: 1, youtubeTitle: 1}, function(err, lyric){
+	for (var i = 0; i < title.length; i++) {
+		regexquery = regexquery + title[i] + ".*";
+	}
+	
+	console.log(regexquery);
+
+	LyricModel.find({youtubeTitle: {$regex: regexquery, $options: "i"}}, {_id: 1, youtubeLink: 1, youtubeTitle: 1}, function(err, lyric){
 		if(err) return res.status(500).json({error: err});
 		res.json(lyric);
 	});
