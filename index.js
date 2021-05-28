@@ -7,7 +7,7 @@ const api_config = require('./api-config.json');
 const mongoose = require('mongoose');
 
 var LyricSchema = new mongoose.Schema({
-	lastModifiedTime: { type: Date, default: Date.now },
+	lastModifiedTime: String,
 	youtubeLink: String,
 	youtubeTitle: String,
 	Lyrics: Object
@@ -46,13 +46,37 @@ app.post('/getYoutubeTitle', function(req, res) {
 });
 
 app.post('/save', function(req, res) {
+	let now = new Date();
+
+	now.add({hours: 9});
+
+	let year = now.getFullYear();
+	let month = now.getMonth() + 1;
+	let date = now.getDate();
+	var day = now.getDay();
+
+	if (day == 0) day = '일';
+	else if (day == 1) day = '월';
+	else if (day == 2) day = '화';
+	else if (day == 3) day = '수';
+	else if (day == 4) day = '목';
+	else if (day == 5) day = '금';
+	else day = '토';
+
+	let hours = now.getHours();
+	let minutes = now.getMinutes();
+	let seconds = now.getSeconds();
+	
+	const nowDate = year + '-' + month + '-' + date + ' (' + day + ')' + ' ' + 
+			hours + '시 ' + minutes + '분 ' + seconds + '초';
+
 	const data = new LyricModel({
 		youtubeLink: req.body.yt_link,
 		youtubeTitle: req.body.yt_title,
 		Lyrics: req.body.transcript,
+		lastModifiedTime: nowDate
 	});
 	
-	console.log(data);
 
 	data.save(function(err) {
 		if (err) {
