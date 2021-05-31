@@ -127,15 +127,17 @@ app.post('/find/lyric', function(req, res) {
 app.post('/find/uri', function(req, res) {
 	var yt_ID = getYoutubeID(req.body.youtubeLink);
 
-	LyricModel.find({"_id": yt_ID}, { _id: 1 }, function(err, lyric) {
+	LyricModel.find({"youtubeID": yt_ID}, { _id: 1 }, function(err, lyric) {
 		if (err) {
 			console.log('Error occurred with Find URI');
 			return res.json({result: 0});
 		}
-
+		else if (lyric.length == 0) {
+			console.log('FIND URI API : NONE');
+			return res.json({result: 0});
+		}
 		console.log('Successfully Found URI');
-		lyric.result = 1;
-		res.json(lyric);
+		res.json({_id: lyric[0]._id, result: 1});
 	});
 })
 
