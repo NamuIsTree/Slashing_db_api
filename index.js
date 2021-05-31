@@ -10,6 +10,7 @@ var LyricSchema = new mongoose.Schema({
 	lastModifiedTime: String,
 	youtubeLink: String,
 	youtubeTitle: String,
+	youtubeID: String,
 	Lyrics: Object
 }, { collection: 'music' });
 
@@ -46,6 +47,7 @@ app.post('/getYoutubeTitle', function(req, res) {
 });
 
 app.post('/save', function(req, res) {
+	var yt_ID = getYoutubeID(req.body.yt_link);
 	var now = new Date().getTime();
 	now += 9 * 60 * 60 * 1000;
 	now = new Date(now);
@@ -75,11 +77,11 @@ app.post('/save', function(req, res) {
 	const data = new LyricModel({
 		youtubeLink: req.body.yt_link,
 		youtubeTitle: req.body.yt_title,
+		youtubeID: yt_ID,
 		Lyrics: req.body.transcript,
 		lastModifiedTime: nowDate
 	});
 	
-
 	data.save(function(err) {
 		if (err) {
 			console.error(err);
@@ -92,7 +94,7 @@ app.post('/save', function(req, res) {
 	});
 });
 
-app.post('/find', function(req, res){
+app.post('/find', function(req, res) {
 	var title = req.body.search_key.split(' ');
 	var regexquery = ".*";
 
@@ -110,18 +112,73 @@ app.post('/find', function(req, res){
 	console.log('Successfully Found.');
 });
 
-app.post('/find/lyric', function(req, res){
+app.post('/find/lyric', function(req, res) {
 	
-
-	LyricModel.find({"_id": req.body._id}, function(err, lyric){
-		if(err) return res.status(500).json({error: err});
+	LyricModel.find({"_id": req.body._id}, function(err, lyric) {
+		if (err) {
+			return res.status(500).json({error: err});
+		}
 		res.json(lyric);
 	});
 
 	console.log('Successfully Found lyric.');
 });
 
+app.post('/find/uri', function(req, res) {
+	var yt_ID = getYoutubeID(req.body.youtubeLink);
 
+	LyricModel.find({"_id": yt_ID}, { _id: 1 }, function(err, lyric) {
+		if (err) {
+			console.log('Error occurred with Find URI');
+			return res.json({result: 0});
+		}
+
+		console.log('Successfully Found URI');
+		lyric.result = 1;
+		res.json(lyric);
+	});
+})
+
+app.post('/edit/lyric', function(req, res) {
+	var _id = req.body._id;
+	var Lyrics = req.body.Lyrics;
+	var now = new Date().getTime();
+        now += 9 * 60 * 60 * 1000;
+        now = new Date(now);
+
+        let year = now.getFullYear();
+        let month = now.getMonth() + 1;
+        let date = now.getDate();
+        var day = now.getDay();
+
+        if (day == 0) day = '일';
+        else if (day == 1) day = '월';
+        else if (day == 2) day = '화';
+        else if (day == 3) day = '수';
+        else if (day == 4) day = '목';
+        else if (day == 5) day = '금';
+        else day = '토';
+
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        let seconds = now.getSeconds();
+
+        const nowDate = year + '년 ' + month + '월 ' + date + '일 (' + day + ')' + ' ' +
+                        hours + '시 ' + minutes + '분 ' + seconds + '초';
+
+        console.log('date : ' + nowDate);
+
+
+	LyricModel.update({"_id": _id}, {"lastModifiedTime": nowDate, "Lyrics": Lyrics}, function(err) {
+		if (err) {
+			console.log('Error Occurred (' + _id + ')');
+			return res.json({result: 0});
+		}
+
+		console.log('Successfully Updated');
+		res.json({result: 1});
+	});
+});
 
 app.listen(port, () => console.log('API running ...'));
 
